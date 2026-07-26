@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>SCI-ON-WORD · Shooting on ⚽</title>
+<style>
+  :root{
+    --grass1:#2e9d54; --grass2:#278b49; --grass-line:rgba(255,255,255,.28);
+    --sky:#0d1b2a; --card:#12233a; --card2:#183153;
+    --ink:#eef4ff; --muted:#9db2d4; --line:#25406a;
+    --primary:#4d94ff; --primary-d:#2f7bf0; --accent:#ffc93c;
+    --good:#3ddc91; --bad:#ff6b6b;
+    --ball:#ffffff; --net:rgba(255,255,255,.55);
+    --fs-h1:1.65rem; --fs-h2:1.25rem; --fs-body:1.02rem; --fs-cap:.8rem;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  html{background:var(--sky);}
+  body{
+    font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+    background:radial-gradient(130% 60% at 50% -10%, rgba(77,148,255,.18), transparent 60%), var(--sky);
+    color:var(--ink); font-size:var(--fs-body); line-height:1.5;
+    max-width:560px; margin:0 auto; min-height:100vh; position:relative;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  h1,h2,h3{margin:.2em 0 .5em;line-height:1.2;font-weight:800;letter-spacing:-.02em;}
+  h2{font-size:var(--fs-h1);} h3{font-size:var(--fs-h2);}
+  .muted{color:var(--muted);}
+  .cap{font-size:var(--fs-cap);color:var(--muted);}
+  button{font-family:inherit;cursor:pointer;border:none;}
+  .screen{display:none;padding:14px 16px 40px;animation:fade .25s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .btn{display:block;width:100%;min-height:54px;border-radius:16px;font-size:17px;font-weight:800;
+    background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;margin:10px 0;
+    box-shadow:0 6px 18px rgba(47,123,240,.35);transition:transform .1s,box-shadow .1s;}
+  .btn:active{transform:scale(.98);box-shadow:0 3px 10px rgba(47,123,240,.3);}
+  .btn.sec{background:var(--card2);color:var(--ink);box-shadow:none;border:1px solid var(--line);}
+  .btn.warn{background:linear-gradient(135deg,var(--accent),#f0a800);color:#3a2600;}
+  .btn.sm{min-height:42px;font-size:14px;width:auto;padding:0 16px;display:inline-block;border-radius:12px;margin:4px;}
+  input,select{width:100%;min-height:52px;border:1px solid var(--line);border-radius:14px;padding:0 16px;
+    font-size:17px;background:var(--card);color:var(--ink);margin:8px 0;font-family:inherit;}
+  input:focus,select:focus{outline:none;border-color:var(--primary);}
+  label{font-weight:700;font-size:.92rem;color:var(--muted);display:block;margin:12px 2px 2px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;}
+  .center{text-align:center;}
+  .row{display:flex;gap:10px;align-items:center;}
+  .grow{flex:1;}
+
+  /* ===== 상단 헤더 + 진행률 ===== */
+  .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(var(--sky),rgba(13,27,42,.92));
+    padding:10px 4px 8px;backdrop-filter:blur(4px);}
+  .pbar-wrap{display:flex;align-items:center;gap:9px;}
+  .pbar{flex:1;height:14px;background:var(--card);border-radius:20px;overflow:hidden;border:1px solid var(--line);}
+  .pbar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .4s;border-radius:20px;}
+  .pbar-txt{font-size:var(--fs-cap);font-weight:800;color:var(--accent);white-space:nowrap;}
+  .who{font-size:var(--fs-cap);color:var(--muted);text-align:right;margin-top:3px;}
+  .score-chip{background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:3px 12px;font-weight:800;font-size:.82rem;color:var(--accent);white-space:nowrap;}
+
+  /* ===== 로고 ===== */
+  .hero{text-align:center;margin:24px 0 6px;}
+  .hero .ball-logo{font-size:66px;animation:spin 6s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .hero h1{font-size:2.2rem;background:linear-gradient(100deg,var(--primary),var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent;margin:6px 0 0;}
+  .hero .tag{color:var(--muted);letter-spacing:.14em;font-weight:700;font-size:.85rem;}
+
+  /* ===== 난이도 카드 ===== */
+  .diff{display:flex;justify-content:space-between;align-items:center;padding:18px 18px;margin:12px 0;border-radius:18px;
+    background:var(--card);border:1px solid var(--line);transition:transform .1s;}
+  .diff:active{transform:scale(.98);}
+  .diff .lv{font-size:1.35rem;font-weight:900;}
+  .diff .de{font-size:.85rem;color:var(--muted);}
+  .diff.easy{border-left:6px solid var(--good);}
+  .diff.normal{border-left:6px solid var(--primary);}
+  .diff.hard{border-left:6px solid var(--bad);}
+  .diff .balls{font-size:1.3rem;}
+
+  /* ===== 골대 영역 ===== */
+  #s-game{padding:0;}
+  .goal-area{position:relative;background:linear-gradient(180deg,#0f2036,#0c1a2c);padding:8px 14px 14px;border-bottom:3px solid #35507d;}
+  .goal-post{position:relative;margin:2px auto 8px;max-width:340px;height:74px;
+    border:5px solid #f2f5ff;border-bottom:none;border-radius:8px 8px 0 0;
+    background:
+      repeating-linear-gradient(90deg,transparent,transparent 13px,var(--net) 13px,var(--net) 14px),
+      repeating-linear-gradient(0deg,transparent,transparent 13px,var(--net) 13px,var(--net) 14px);
+    box-shadow:0 6px 16px rgba(0,0,0,.4);}
+  .q-desc{font-size:1.08rem;font-weight:700;line-height:1.45;margin:4px 0;color:#fff;}
+  .q-img{width:100%;max-height:150px;object-fit:contain;border-radius:12px;margin:6px 0 2px;background:#0a1524;}
+  .q-emoji{font-size:64px;text-align:center;margin:6px 0;}
+  .q-hint{display:inline-block;margin-top:6px;font-size:1.4rem;font-weight:900;letter-spacing:.35em;
+    color:var(--accent);background:rgba(255,201,60,.12);padding:4px 14px;border-radius:12px;min-height:0;}
+
+  /* ===== 잔디 구장 ===== */
+  .pitch{position:relative;width:100%;height:min(56vh,440px);overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg,var(--grass1),var(--grass1) 34px,var(--grass2) 34px,var(--grass2) 68px);
+  }
+  .pitch::before{content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg,rgba(255,255,255,.05),transparent 8%,transparent 92%,rgba(255,255,255,.05));
+    animation:grassWave 3.5s ease-in-out infinite;}
+  @keyframes grassWave{0%,100%{transform:translateX(-6px);}50%{transform:translateX(6px);}}
+  .pitch .midline{position:absolute;top:8px;left:0;right:0;height:2px;background:var(--grass-line);}
+  .pitch .circle{position:absolute;top:50%;left:50%;width:120px;height:120px;margin:-60px 0 0 -60px;
+    border:2px solid var(--grass-line);border-radius:50%;}
+  .ball{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
+    width:98px;height:98px;border-radius:50%;transform:translate(-50%,-50%);
+    background-size:cover;background-position:center;background-repeat:no-repeat;
+    filter:drop-shadow(0 6px 9px rgba(0,0,0,.45));cursor:pointer;
+    transition:transform .12s;animation:floaty 2.6s ease-in-out infinite;}
+  .ball-label{background:rgba(255,255,255,.9);color:#12233a;font-weight:900;font-size:.9rem;line-height:1.05;
+    padding:3px 7px;border-radius:9px;max-width:82px;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+  .ball:active{transform:translate(-50%,-50%) scale(.94);}
+  @keyframes floaty{0%,100%{margin-top:0;}50%{margin-top:-5px;}}
+  .ball.shoot{animation:shoot .6s cubic-bezier(.35,-0.15,.45,1) forwards;z-index:40;}
+  @keyframes shoot{55%{opacity:1;}100%{top:-72px;transform:translate(-50%,-50%) scale(.14) rotate(70deg);opacity:0;}}
+  .ball.miss{animation:miss .4s ease;}
+  @keyframes miss{0%,100%{}20%{transform:translate(-50%,-50%) rotate(-9deg);}60%{transform:translate(-50%,-50%) rotate(9deg);}}
+
+  /* ===== GOAL / 폭죽 오버레이 ===== */
+  .fx{position:fixed;inset:0;pointer-events:none;z-index:60;display:none;}
+  .fx.on{display:block;}
+  .goal-txt{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%) scale(0);
+    font-size:4rem;font-weight:900;color:var(--accent);text-shadow:0 4px 0 #b97b00,0 0 30px rgba(255,201,60,.8);
+    animation:goalPop .9s ease forwards;}
+  @keyframes goalPop{40%{transform:translate(-50%,-50%) scale(1.15);}70%{transform:translate(-50%,-50%) scale(.95);}100%{transform:translate(-50%,-50%) scale(1);opacity:1;}}
+  .cheer{position:absolute;top:44%;left:50%;transform:translateX(-50%);font-size:1.1rem;font-weight:800;color:#fff;text-shadow:0 2px 6px #000;opacity:0;animation:cheerIn .5s .25s ease forwards;}
+  @keyframes cheerIn{to{opacity:1;}}
+  .spark{position:absolute;width:10px;height:10px;border-radius:50%;opacity:0;}
+
+  /* 오답 격려 배너 */
+  .encourage{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:55;
+    background:var(--card2);border:1px solid var(--bad);color:#fff;padding:10px 18px;border-radius:14px;
+    font-weight:800;box-shadow:0 8px 20px rgba(0,0,0,.4);display:none;}
+  .encourage.on{display:block;animation:enc .4s ease;}
+  @keyframes enc{from{opacity:0;transform:translateX(-50%) translateY(-10px);}to{opacity:1;}}
+
+  /* ===== 결과 ===== */
+  .result-score{font-size:3.2rem;font-weight:900;color:var(--accent);text-align:center;line-height:1;}
+  .stat{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--line);}
+  .chip{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:5px 12px;margin:4px 4px 0 0;font-size:.86rem;}
+  .chip.bad{border-color:var(--bad);color:#ffd0d0;}
+
+  /* ===== 랭킹/오답 표 ===== */
+  table{width:100%;border-collapse:collapse;font-size:.92rem;}
+  th,td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-size:.8rem;}
+  .rank-1{color:var(--accent);font-weight:900;}
+  .tabs{display:flex;gap:6px;margin:8px 0;}
+  .tabs .tb{flex:1;padding:9px;border-radius:12px;background:var(--card);border:1px solid var(--line);text-align:center;font-weight:800;font-size:.9rem;color:var(--muted);}
+  .tabs .tb.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .bar{height:22px;background:var(--card2);border-radius:8px;overflow:hidden;}
+  .bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--bad),#ff9e6b);}
+
+  /* 관리자 진입 버튼 */
+  .adm-fab{position:fixed;top:10px;right:12px;z-index:40;background:var(--card2);border:1px solid var(--line);
+    color:var(--muted);border-radius:20px;padding:6px 12px;font-size:.8rem;font-weight:700;}
+  /* 챗봇 FAB — 주황색 원형, 드래그로 이동 가능 */
+  .chat-fab{position:fixed;right:16px;bottom:92px;z-index:70;width:70px;height:70px;border-radius:50%;
+    background:linear-gradient(135deg,#ffb347,#ff7a18);color:#fff;font-size:36px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:grab;
+    border:3px solid rgba(255,255,255,.4);box-shadow:0 8px 22px rgba(255,122,24,.55);
+    touch-action:none;user-select:none;-webkit-user-select:none;transition:transform .1s;}
+  .chat-fab:active{cursor:grabbing;transform:scale(.94);}
+  .chat-log{height:46vh;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;}
+  .msg{max-width:82%;padding:9px 13px;border-radius:14px;margin:6px 0;font-size:.95rem;line-height:1.4;}
+  .msg.u{background:var(--primary);color:#fff;margin-left:auto;border-bottom-right-radius:4px;}
+  .msg.a{background:var(--card2);color:var(--ink);border-bottom-left-radius:4px;}
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#000d;color:#fff;padding:10px 18px;border-radius:20px;font-size:.9rem;z-index:80;opacity:0;transition:opacity .3s;pointer-events:none;}
+  .toast.show{opacity:1;}
+  .sound-toggle{position:fixed;top:10px;left:12px;z-index:40;background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:20px;padding:6px 12px;font-size:.8rem;}
+</style>
+</head>
+<body>
+
+<!-- ===================== 로그인 ===================== -->
+<section id="s-login" class="screen active">
+  <div class="hero">
+    <div class="ball-logo">⚽</div>
+    <h1>SCI-ON-WORD</h1>
+    <div class="tag">S H O O T I N G &nbsp; O N</div>
+  </div>
+  <div class="card">
+    <label>학번</label>
+    <input id="in-num" type="text" inputmode="numeric" placeholder="예: 10203" />
+    <label>부캐 (과학자 별명)</label>
+    <select id="in-nick"></select>
+    <button class="btn" onclick="doLogin()">⚽ 게임 시작</button>
+    <p class="cap center">학번과 부캐를 고르면 바로 플레이할 수 있어요.</p>
+  </div>
+  <button class="btn sec" onclick="show('s-admin-pw')">🔑 관리자 모드</button>
+</section>
+
+<!-- ===================== 난이도 선택 ===================== -->
+<section id="s-diff" class="screen">
+  <div class="topbar"><div id="tb-diff"></div></div>
+  <h2>난이도를 골라줄래?</h2>
+  <p class="muted cap">한 라운드 = 15문제 · 정답 축구공을 슛! 감점은 없어요.</p>
+  <div class="diff easy" onclick="startGame('easy')">
+    <div><div class="lv">Easy</div><div class="de">첫 정답 10점 · 오답 후 5점</div></div>
+    <div class="center"><div class="balls">⚽⚽</div><div class="cap">공 2개</div></div>
+  </div>
+  <div class="diff normal" onclick="startGame('normal')">
+    <div><div class="lv">Normal</div><div class="de">첫 정답 20점 · 오답 후 10점</div></div>
+    <div class="center"><div class="balls">⚽⚽⚽</div><div class="cap">공 3개</div></div>
+  </div>
+  <div class="diff hard" onclick="startGame('hard')">
+    <div><div class="lv">Hard</div><div class="de">첫 정답 30점 · 오답 후 15점</div></div>
+    <div class="center"><div class="balls">⚽⚽⚽⚽⚽</div><div class="cap">공 5개</div></div>
+  </div>
+  <button class="btn sec" onclick="openRank()">🏆 랭킹 보기</button>
+  <button class="btn sec" onclick="logout()">🚪 로그아웃</button>
+</section>
+
+<!-- ===================== 게임 ===================== -->
+<section id="s-game" class="screen">
+  <div class="topbar" style="padding:10px 12px 8px"><div id="tb-game"></div></div>
+  <div class="goal-area">
+    <div class="goal-post"></div>
+    <img id="q-img" class="q-img" alt="" style="display:none" />
+    <div id="q-emoji" class="q-emoji" style="display:none">🔬</div>
+    <div id="q-desc" class="q-desc"></div>
+    <div id="q-hint" class="q-hint" style="display:none"></div>
+  </div>
+  <div class="pitch" id="pitch">
+    <div class="midline"></div><div class="circle"></div>
+  </div>
+</section>
+
+<!-- ===================== 결과 ===================== -->
+<section id="s-result" class="screen">
+  <h2 class="center">🏁 라운드 종료!</h2>
+  <div class="card center">
+    <div class="cap">이번 판 점수</div>
+    <div class="result-score" id="r-score">0</div>
+    <div id="r-summary" class="muted" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <div class="stat"><span>첫 시도 정답</span><b id="r-first">0</b></div>
+    <div class="stat"><span>오답 후 정답</span><b id="r-retry">0</b></div>
+    <div class="stat"><span>누적 총점 (이 난이도)</span><b id="r-total">0</b></div>
+    <div id="r-wrong-wrap" style="margin-top:12px;display:none">
+      <div class="muted cap">복습이 필요한 용어</div>
+      <div id="r-wrong"></div>
+    </div>
+  </div>
+  <button class="btn" onclick="startGame(curMode)">🔁 한 판 더</button>
+  <button class="btn sec" onclick="show('s-diff')">난이도 다시 고르기</button>
+  <button class="btn sec" onclick="openRank()">🏆 랭킹 보기</button>
+  <button class="btn sec" onclick="logout()">🚪 로그아웃</button>
+</section>
+
+<!-- ===================== 랭킹 ===================== -->
+<section id="s-rank" class="screen">
+  <div class="row" style="margin-top:6px">
+    <h2 class="grow">🏆 랭킹 Top 5</h2>
+    <button class="btn sm sec" onclick="show(user?'s-diff':'s-login')">← 뒤로</button>
+  </div>
+  <div class="tabs">
+    <div class="tb on" data-m="easy" onclick="rankTab('easy')">Easy</div>
+    <div class="tb" data-m="normal" onclick="rankTab('normal')">Normal</div>
+    <div class="tb" data-m="hard" onclick="rankTab('hard')">Hard</div>
+  </div>
+  <div id="rank-body" class="card">불러오는 중…</div>
+  <p class="cap muted center">누적 총점 기준 · 재플레이할수록 점수가 쌓여요.</p>
+</section>
+
+<!-- ===================== 관리자: 비밀번호 ===================== -->
+<section id="s-admin-pw" class="screen">
+  <div class="hero"><div class="ball-logo" style="animation:none">🔑</div><h1 style="font-size:1.6rem">관리자 모드</h1></div>
+  <div class="card">
+    <label>비밀번호</label>
+    <input id="adm-pw" type="password" inputmode="numeric" placeholder="****" />
+    <button class="btn" onclick="admLogin()">입장</button>
+    <button class="btn sec" onclick="show('s-login')">취소</button>
+    <p id="adm-msg" class="cap center" style="color:var(--bad)"></p>
+  </div>
+</section>
+
+<!-- ===================== 관리자: 대시보드 ===================== -->
+<section id="s-admin" class="screen">
+  <div class="row" style="margin-top:6px"><h2 class="grow">🛠 관리자 대시보드</h2>
+    <button class="btn sm sec" onclick="show('s-login')">나가기</button></div>
+
+  <div class="card">
+    <h3>📥 문제 세트</h3>
+    <p class="cap muted">용어 / 이미지URL / 설명 3개 열이 담긴 <b>CSV 파일</b>을 올리세요. (엑셀·구글시트는 “CSV로 저장” 후 업로드)</p>
+    <label class="btn sm warn" style="display:inline-block;text-align:center">📤 파일 올리기
+      <input id="terms-file" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" style="display:none" onchange="onTermsFile(this)">
+    </label>
+    <button class="btn sm" onclick="downloadTemplate()">📄 양식 내려받기</button>
+    <button class="btn sm sec" onclick="reloadTerms()">시트에서 다시 불러오기</button>
+    <label style="margin-top:10px">또는 구글 시트 URL 붙여넣기</label>
+    <div class="row">
+      <input id="sheet-url" class="grow" placeholder="https://docs.google.com/spreadsheets/d/..." style="margin:0" />
+      <button class="btn sm" style="min-height:52px;margin:0" onclick="importSheetUrl()">가져오기</button>
+    </div>
+    <p class="cap muted" style="margin:4px 2px">※ 시트 공유를 “링크가 있는 모든 사용자: 뷰어”로 설정해야 읽을 수 있어요.</p>
+    <div id="adm-terms" class="cap muted" style="margin-top:8px"></div>
+    <div id="adm-terms-preview" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <h3>📈 학습 현황 (학생별)</h3>
+    <p class="cap muted">학생별 플레이 횟수·누적 점수·정답률·마지막 플레이. 판을 거듭할수록 누적됩니다.</p>
+    <div id="adm-progress"></div>
+  </div>
+
+  <div class="card">
+    <h3>🏆 게임별 랭킹 (Top 5)</h3>
+    <div id="adm-rank"></div>
+  </div>
+
+  <div class="card">
+    <h3>❌ 오답 용어 대시보드</h3>
+    <p class="cap muted">학생들이 많이 틀린 용어 순 — 다음 수업 보강용.</p>
+    <div id="adm-wrong"></div>
+  </div>
+</section>
+
+<!-- ===================== 챗봇 ===================== -->
+<section id="s-chat" class="screen">
+  <div class="row" style="margin-top:6px"><h2 class="grow">🤖 학습 도우미</h2>
+    <button class="btn sm sec" onclick="show(prevScreen)">← 닫기</button></div>
+  <div id="chat-log" class="chat-log"></div>
+  <div class="row" style="margin-top:8px">
+    <input id="chat-in" class="grow" placeholder="궁금한 과학 용어를 물어봐!" onkeydown="if(event.key==='Enter')sendChat()" />
+    <button class="btn sm" style="min-height:52px" onclick="sendChat()">전송</button>
+  </div>
+</section>
+
+<button class="sound-toggle" id="soundBtn" onclick="toggleSound()">🔊 소리 켬</button>
+<button class="chat-fab" id="admFab" style="display:none" title="학습 도우미 (드래그로 이동)">🤖</button>
+<div class="fx" id="fx"></div>
+<div class="encourage" id="encourage"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= CONFIG ================= */
+// 배포된 Apps Script 웹앱 URL. (getTerms + Upstage 프록시 추가 버전으로 재배포 후 사용)
+// 비워두거나 통신 실패 시 → 내장 샘플 15개 + localStorage 로 완전 동작합니다.
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwAtzA4_i7fyBGz_1V9S40mO_Db-OF0nk8Kiw0o5O8KsxMX2pkNjN_aQtfmzJiAgY3b/exec";
+const ADMIN_PW = "1234";
+const TOTAL = 15;               // 한 라운드 문제 수
+const COMBO_ON = true;          // 3연속 첫정답 콤보 보너스 +5
+const USE_UPSTAGE_POLISH = false; // true면 설명을 Upstage로 다듬어 표시(프록시 필요)
+// 축구공 그림: 비우면 아래 SVG(투명 배경 진짜 축구공). 원하는 공 이미지를 쓰려면
+// 그 파일을 이 html과 같은 폴더에 저장하고 파일명을 넣으세요. 예: "ball.png"
+const BALL_IMG = "";
+
+/* 투명 배경 축구공 SVG 생성 (오각형·이음선 계산) */
+function pent(cx,cy,r,rotDeg){let p=[];for(let i=0;i<5;i++){const a=(rotDeg-90+i*72)*Math.PI/180;
+  p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));}return p.join(' ');}
+function buildBallSVG(){
+  let seams='',rims='';
+  for(let i=0;i<5;i++){
+    const th=(-90+i*72)*Math.PI/180;
+    const vx=50+15*Math.cos(th), vy=50+15*Math.sin(th);   // 중앙 오각형 꼭짓점
+    const rx=50+37*Math.cos(th), ry=50+37*Math.sin(th);   // 가장자리 검은 조각 중심
+    seams+=`<line x1='${vx.toFixed(1)}' y1='${vy.toFixed(1)}' x2='${rx.toFixed(1)}' y2='${ry.toFixed(1)}'/>`;
+    rims+=`<polygon points='${pent(rx,ry,9,(-90+i*72)+180)}' fill='#161616'/>`;
+  }
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>`+
+    `<defs><radialGradient id='g' cx='38%' cy='30%' r='72%'>`+
+    `<stop offset='0' stop-color='#ffffff'/><stop offset='.72' stop-color='#eef1f6'/><stop offset='1' stop-color='#c2ccdb'/>`+
+    `</radialGradient><clipPath id='c'><circle cx='50' cy='50' r='47'/></clipPath></defs>`+
+    `<circle cx='50' cy='50' r='47' fill='url(#g)' stroke='#8b98ad' stroke-width='1.4'/>`+
+    `<g clip-path='url(#c)'><g stroke='#222' stroke-width='2.4' stroke-linecap='round' fill='none'>${seams}</g>`+
+    `${rims}<polygon points='${pent(50,50,15,0)}' fill='#161616'/></g>`+
+    `<ellipse cx='37' cy='28' rx='15' ry='9' fill='#ffffff' opacity='.35'/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+const BALL_BG = BALL_IMG ? `url("${BALL_IMG}")` : buildBallSVG();
+
+const SCIENTISTS = ["장영실","우장춘","허준","정약용","이휘소",
+  "아인슈타인","뉴턴","갈릴레이","다윈","마리 퀴리","에디슨","테슬라","패러데이","멘델","파스퇴르",
+  "아르키메데스","코페르니쿠스","케플러","노벨","볼타","옴","라부아지에","보어","호킹","파인만",
+  "슈뢰딩거","하이젠베르크","왓슨","로절린드 프랭클린","로버트 훅"];
+
+/* 내장 샘플 세트: II. 생물의 구성과 다양성 (15개). 시트 연동 시 이 값은 대체됩니다. */
+const SAMPLE_TERMS = [
+  {term:"세포", emoji:"🔬", image:"https://i.postimg.cc/8Pdp72rv/hwamyeon-kaebcheo-2026-07-12-170828.jpg", desc:"생명활동이 일어나는 가장 작은 기본 단위"},
+  {term:"핵", emoji:"⚫", image:"https://i.postimg.cc/nLWp8ZN5/hwamyeon-kaebcheo-2026-07-12-171323.jpg", desc:"생물의 모양, 특성 등을 결정하는 유전물질이 들어 있어 생명활동을 조절하는 곳"},
+  {term:"세포막", emoji:"🧫", image:"https://i.postimg.cc/nLWp8ZN5/hwamyeon-kaebcheo-2026-07-12-171323.jpg", desc:"세포 안팎으로 물질의 출입을 조절하는 얇은 막"},
+  {term:"엽록체", emoji:"🌿", image:"https://i.postimg.cc/nLWp8ZN5/hwamyeon-kaebcheo-2026-07-12-171323.jpg", desc:"식물 세포에만 있으며, 빛을 이용하여 양분을 만드는(광합성) 초록색 알갱이 모양의 구조"},
+  {term:"마이토콘드리아", emoji:"🔋", image:"https://i.postimg.cc/nLWp8ZN5/hwamyeon-kaebcheo-2026-07-12-171323.jpg", desc:"영양소를 분해하여 생명활동을 하는 데 필요한 에너지를 생산하는 곳"},
+  {term:"조직", emoji:"🧩", image:"https://i.postimg.cc/G3GrfWKz/hwamyeon-kaebcheo-2026-07-12-171925.jpg", desc:"세포 다음 구성 단계로 모양과 기능이 비슷한 세포들의 모임"},
+  {term:"기관", emoji:"❤️", image:"https://i.postimg.cc/VNJPWp50/hwamyeon-kaebcheo-2026-07-17-070147.jpg", desc:"조직 다음 구성 단계로 여러 조직이 모여 일정한 형태를 이루고 특정 기능을 수행하는 것"},
+  {term:"기관계", emoji:"🫀", image:"https://i.postimg.cc/gkMcWfX8/gigwangye.jpg", desc:"동물에서 서로 관련된 기능을 수행하는 기관들의 모임"},
+  {term:"조직계", emoji:"🌱", image:"https://i.postimg.cc/0jnkr4tx/jojiggye.jpg", desc:"식물에서 여러 조직이 모여 일정한 기능을 수행하는 단계"},
+  {term:"개체", emoji:"🐰", image:"https://i.postimg.cc/7hwPH4n0/gaeche.jpg", desc:"여러 기관이나 기관계가 모여 이루어진 하나의 독립된 생물"},
+  {term:"생물다양성", emoji:"🌍", image:"https://i.postimg.cc/52RtwZfC/saengmuldayangseong.jpg", desc:"어떤 지역에 사는 생물의 다양한 정도"},
+  {term:"변이", emoji:"🎨", image:"https://i.postimg.cc/Dy7mFrC8/byeon-i.jpg", desc:"같은 종류의 생물 사이에서 색깔이나 형태가 서로 조금씩 다르게 나타나는 것"},
+  {term:"분류", emoji:"🗂️", image:"https://i.postimg.cc/k48DMf3C/jong.jpg", desc:"생물 고유의 특징 등 일정한 기준에 따라 생물을 무리 지어 나누는 것"},
+  {term:"종", emoji:"🐦", image:"https://i.postimg.cc/k48DMf3C/jong.jpg", desc:"생물 분류의 가장 기본 단위로, 자연 상태에서 짝짓기하여 생식 능력이 있는 자손을 낳을 수 있는 생물 무리"},
+  {term:"원핵생물계", emoji:"🦠", image:"https://i.postimg.cc/MpPn9nmH/wonhaegsaengmulgye.jpg", desc:"핵막이 없어 핵이 뚜렷하게 구분되지 않는 세포로 이루어진 생물 무리"}
+];
+
+/* ================= STATE ================= */
+let user = null;               // {num,nick}
+let terms = [];                // 문제 세트
+let curMode = 'easy';
+let queue = [];                // 이번 라운드 문제 순서(용어 인덱스)
+let qi = 0;                    // 현재 문제 번호(0-based)
+let roundScore = 0, firstCnt = 0, retryCnt = 0, combo = 0;
+let triedWrong = false;        // 현재 문제에서 오답을 한 적 있는지
+let wrongThisRound = [];       // 이번 라운드 틀린 용어
+let soundOn = true;
+let prevScreen = 's-diff';
+const BALLS = {easy:2, normal:3, hard:5};
+const PTS = {easy:[10,5], normal:[20,10], hard:[30,15]};
+
+/* localStorage 폴백 저장소 (백엔드 실패 시) */
+const LK = {rank:'sci_shoot_rank', wrong:'sci_shoot_wrong'};
+function lload(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}}
+function lsave(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+/* ================= 백엔드 통신 =================
+   기존 배포 백엔드 액션 재사용: GET ?action=load (rank+wrong), POST score/wrong.
+   신규(재배포 시): GET ?action=terms, POST hint/polish/chat. */
+function api(params){return fetch(BACKEND_URL+'?'+params).then(r=>r.json());}
+function apiPost(payload){
+  return fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)}).then(r=>r.json()).catch(()=>null);
+}
+
+/* ================= 초성 힌트 (로컬 규칙 기반) ================= */
+const CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+function choseong(str){
+  return [...str].map(ch=>{const c=ch.charCodeAt(0);
+    if(c>=0xAC00&&c<=0xD7A3)return CHO[Math.floor((c-0xAC00)/588)];
+    return ch;}).join(' ');
+}
+
+/* ================= 사운드 (WebAudio) ================= */
+let AC=null;
+function beep(freq,dur,type){
+  if(!soundOn)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type=type||'sine';o.frequency.value=freq;o.connect(g);g.connect(AC.destination);
+    g.gain.setValueAtTime(.18,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
+    o.start();o.stop(AC.currentTime+dur);}catch(e){}
+}
+function sndGoal(){beep(660,.12);setTimeout(()=>beep(880,.18),110);setTimeout(()=>beep(1175,.25),260);}
+function sndMiss(){beep(180,.25,'sawtooth');}
+function toggleSound(){soundOn=!soundOn;document.getElementById('soundBtn').textContent=soundOn?'🔊 소리 켬':'🔇 소리 끔';}
+
+/* ================= 내비게이션 ================= */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('admFab').style.display=(user&&(id==='s-diff'||id==='s-result'))?'block':'none';
+  window.scrollTo(0,0);
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* 상단바 렌더 */
+function topbarHTML(cur,total){
+  const pct=total?Math.round(cur/total*100):0;
+  return `<div class="pbar-wrap">
+    <span style="font-size:12px;font-weight:800">진행</span>
+    <div class="pbar"><span style="width:${pct}%"></span></div>
+    <span class="pbar-txt">${cur}/${total}</span>
+    <span class="score-chip">⭐ ${roundScore}</span></div>
+    <div class="who">${user?user.nick+' · '+user.num:''}</div>`;
+}
+function renderTop(){
+  const d=document.getElementById('tb-diff'); if(d)d.innerHTML=topbarHTML(0,TOTAL);
+  const g=document.getElementById('tb-game'); if(g)g.innerHTML=topbarHTML(Math.min(qi+1,TOTAL),TOTAL);
+}
+
+/* ================= 로그인 ================= */
+function initNickOptions(){
+  const sel=document.getElementById('in-nick');
+  sel.innerHTML=SCIENTISTS.map(s=>`<option>${s}</option>`).join('');
+}
+function doLogin(){
+  const num=document.getElementById('in-num').value.trim();
+  const nick=document.getElementById('in-nick').value;
+  if(!num){toast('학번을 입력해줘!');return;}
+  user={num,nick};
+  loadTerms().then(()=>{renderTop();show('s-diff');});
+}
+
+function logout(){
+  user=null;
+  document.getElementById('in-num').value='';
+  roundScore=0;
+  document.getElementById('admFab').style.display='none';
+  show('s-login');
+  toast('로그아웃 되었어요');
+}
+
+/* 문제 세트 로드 — [현재 고정] 내장 15개 용어만 사용.
+   (백엔드/업로드본 우선 로직은 아래에 보존해 두었으니, 나중에 풀려면 FIX_TERMS=false 로.) */
+const FIX_TERMS = true;
+function loadTerms(){
+  if(FIX_TERMS){terms=SAMPLE_TERMS.slice();return Promise.resolve();}
+  const uploaded=lload('sci_shoot_terms',null);
+  const fallback=()=> (uploaded&&uploaded.length>=2)?uploaded.slice():SAMPLE_TERMS.slice();
+  if(!BACKEND_URL){terms=fallback();return Promise.resolve();}
+  return api('action=terms').then(d=>{
+    if(d&&d.ok&&Array.isArray(d.terms)&&d.terms.length>=2){
+      terms=d.terms.map(t=>({term:t.term||t.단어,image:t.image_url||t.이미지,desc:t.description||t.설명}));
+    }else{terms=fallback();}
+  }).catch(()=>{terms=fallback();});
+}
+
+/* ===== 파일(CSV/TSV) 업로드로 문제 세트 올리기 ===== */
+function readFileText(file){                 // 한글 CSV(EUC-KR) 자동 대응
+  return file.arrayBuffer().then(buf=>{
+    let txt=new TextDecoder('utf-8',{fatal:false}).decode(buf);
+    if(txt.indexOf('�')>=0){ try{txt=new TextDecoder('euc-kr').decode(buf);}catch(e){} }
+    return txt;
+  });
+}
+function parseDelimited(text,delim){
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else { if(c==='"')q=true;
+      else if(c===delim){row.push(cur);cur='';}
+      else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';}
+      else if(c==='\r'){} else cur+=c; } }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  return rows.filter(r=>r.some(x=>String(x).trim()!==''));
+}
+function mapColumns(rows){                    // 헤더로 열 자동 인식(순서 무관)
+  let start=0, ci={term:0,image:1,desc:2};
+  const h=(rows[0]||[]).map(s=>String(s).trim().toLowerCase());
+  const find=keys=>h.findIndex(x=>keys.some(k=>x.includes(k)));
+  const ti=find(['단어','용어','term']), ii=find(['이미지','그림','image','img','url','사진']), di=find(['설명','뜻','desc']);
+  if(ti>=0||di>=0||ii>=0){ start=1; ci={term:ti>=0?ti:0, image:ii>=0?ii:1, desc:di>=0?di:2}; }
+  const out=[];
+  for(let i=start;i<rows.length;i++){const r=rows[i];
+    const term=String(r[ci.term]||'').trim(); if(!term)continue;
+    out.push({term, image:String(r[ci.image]||'').trim(), desc:String(r[ci.desc]||'').trim()});
+  }
+  return out;
+}
+function csvToTerms(txt){
+  const first=(txt.split('\n')[0]||'');
+  const delim=(first.split('\t').length>first.split(',').length)?'\t':',';
+  return mapColumns(parseDelimited(txt,delim));
+}
+function applyTerms(parsed,srcMsg){        // 파싱된 용어를 게임·저장·백엔드에 반영
+  if(!parsed||parsed.length<2){toast('용어가 2개 이상 필요해요');return false;}
+  terms=parsed;
+  lsave('sci_shoot_terms',terms);
+  renderAdminTerms();
+  if(BACKEND_URL) apiPost({action:'setTerms', terms:terms.map(t=>({term:t.term,image_url:t.image,description:t.desc}))});
+  toast((srcMsg||'')+parsed.length+'개 용어 반영 ✅');
+  return true;
+}
+function onTermsFile(input){
+  const f=input.files&&input.files[0]; if(!f)return;
+  input.value='';
+  if(/\.xlsx?$/i.test(f.name)){
+    toast('엑셀은 “CSV로 저장” 후 올려주세요');
+    document.getElementById('adm-terms').innerHTML='<span style="color:var(--bad)">⚠ 엑셀(.xlsx) 대신 CSV로 저장해 올려주세요. (엑셀: 다른 이름으로 저장 → CSV UTF-8)</span>';
+    return;
+  }
+  readFileText(f).then(txt=>applyTerms(csvToTerms(txt))).catch(()=>toast('파일을 읽지 못했어요'));
+}
+
+/* ===== 구글 시트 URL로 가져오기 ===== */
+function gsheetCsvUrl(url){
+  const m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9\-_]+)/);
+  if(!m)return null;
+  const g=url.match(/[#&?]gid=([0-9]+)/);
+  return `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv&gid=${g?g[1]:'0'}`;
+}
+function importSheetUrl(){
+  const url=document.getElementById('sheet-url').value.trim();
+  if(!url){toast('시트 URL을 붙여넣어줘');return;}
+  const csvUrl=/output=csv|format=csv/.test(url)?url:gsheetCsvUrl(url);
+  if(!csvUrl){toast('구글 시트 URL이 아니에요');return;}
+  toast('시트에서 불러오는 중…');
+  fetch(csvUrl).then(r=>r.text()).then(txt=>{
+    if(/<html/i.test(txt)) throw new Error('not-csv');   // 로그인 페이지 등
+    applyTerms(csvToTerms(txt),'시트에서 ');
+  }).catch(()=>{
+    document.getElementById('adm-terms').innerHTML='<span style="color:var(--bad)">⚠ 시트를 못 읽었어요. 공유를 “링크가 있는 모든 사용자: 뷰어”로 설정했는지 확인해주세요.</span>';
+  });
+}
+function downloadTemplate(){
+  const rows=[['단어','이미지','설명'],
+    ['세포','https://이미지주소.jpg','생물체를 이루는 가장 작은 구조적·기능적 단위'],
+    ['핵','https://이미지주소.jpg','유전 정보를 담고 세포를 조절하는 기관']];
+  const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='용어세트_양식.csv';a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ================= 게임 시작 ================= */
+function startGame(mode){
+  curMode=mode;
+  if(!terms.length)terms=SAMPLE_TERMS.slice();
+  // 15문제: 용어가 15개면 셔플, 부족하면 반복 채움
+  const idx=[...terms.keys()];
+  shuffle(idx);
+  queue=[];
+  while(queue.length<Math.min(TOTAL,Math.max(terms.length,TOTAL))){
+    queue=queue.concat(idx);
+  }
+  queue=queue.slice(0,TOTAL);
+  shuffle(queue);
+  qi=0;roundScore=0;firstCnt=0;retryCnt=0;combo=0;wrongThisRound=[];
+  show('s-game');
+  renderQuestion();
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+
+/* 현재 문제 렌더 */
+function renderQuestion(){
+  triedWrong=false;
+  renderTop();
+  const t=terms[queue[qi]];
+  // 골대: 설명 + 이미지
+  document.getElementById('q-desc').textContent=t.desc||'설명 없음';
+  const img=document.getElementById('q-img'), em=document.getElementById('q-emoji');
+  if(t.image){img.src=t.image;img.style.display='block';em.style.display='none';
+    img.onerror=()=>{img.style.display='none';em.style.display='block';em.textContent=t.emoji||'🔬';};}
+  else{img.style.display='none';em.style.display='block';em.textContent=t.emoji||'🔬';}
+  document.getElementById('q-hint').style.display='none';
+  if(USE_UPSTAGE_POLISH&&BACKEND_URL)polishDesc(t);
+  renderBalls();
+}
+
+/* 오답 후보 뽑아 축구공 배치 */
+function renderBalls(){
+  const n=BALLS[curMode];
+  const answerIdx=queue[qi];
+  const pool=[...terms.keys()].filter(i=>i!==answerIdx);
+  shuffle(pool);
+  const wrong=pool.slice(0,n-1);           // Hard에서 후보 부족하면 자동으로 적게
+  let picks=[answerIdx,...wrong];
+  shuffle(picks);
+  // 위치 슬롯 (%): 겹치지 않게 count별 프리셋 + 살짝 지터
+  const layouts={
+    2:[[30,42],[70,60]],
+    3:[[26,34],[72,40],[48,72]],
+    4:[[27,32],[72,34],[30,72],[73,72]],
+    5:[[26,30],[72,30],[50,52],[28,76],[74,76]]
+  };
+  const slots=layouts[picks.length]||layouts[5];
+  const pitch=document.getElementById('pitch');
+  pitch.querySelectorAll('.ball').forEach(b=>b.remove());
+  picks.forEach((termIdx,k)=>{
+    const [x,y]=slots[k];
+    const jx=x+(Math.random()*6-3), jy=y+(Math.random()*6-3);
+    const b=document.createElement('div');
+    b.className='ball';
+    b.style.left=jx+'%';b.style.top=jy+'%';
+    b.style.animationDelay=(Math.random()*1.5)+'s';
+    b.style.backgroundImage=BALL_BG;
+    const label=document.createElement('span');
+    label.className='ball-label';
+    label.textContent=terms[termIdx].term;
+    if(terms[termIdx].term.length>=6)label.style.fontSize='.74rem'; // 긴 용어 축소
+    b.appendChild(label);
+    b.onclick=()=>onPick(b,termIdx===answerIdx);
+    pitch.appendChild(b);
+  });
+}
+
+/* 공 클릭 처리 */
+function onPick(ball,correct){
+  if(ball._done)return;
+  if(correct){
+    ball._done=true;
+    document.querySelectorAll('.ball').forEach(b=>b._done=true);
+    // 나머지 공은 숨기고, 맞힌 공만 골대로 슛
+    document.querySelectorAll('.ball').forEach(b=>{if(b!==ball)b.style.opacity=0;});
+    ball.classList.add('shoot');
+    sndGoal();
+    // 점수
+    const gain=triedWrong?PTS[curMode][1]:PTS[curMode][0];
+    roundScore+=gain;
+    if(triedWrong)retryCnt++;else{firstCnt++;combo++;}
+    let comboBonus=0;
+    if(!triedWrong&&COMBO_ON&&combo>0&&combo%3===0){comboBonus=5;roundScore+=5;}
+    if(triedWrong)combo=0;
+    // 공이 골대에 도달해 사라진 뒤 GOAL 연출 → 다음 문제
+    setTimeout(()=>goalFX(gain,comboBonus),560);
+    setTimeout(nextQuestion,1650);
+  }else{
+    triedWrong=true;combo=0;
+    ball.classList.add('miss');
+    ball._done=true;ball.style.opacity=.4;ball.onclick=null;
+    sndMiss();
+    const t=terms[queue[qi]];
+    if(!wrongThisRound.includes(t.term))wrongThisRound.push(t.term);
+    encourage();
+    // 초성 힌트 노출
+    const h=document.getElementById('q-hint');
+    h.textContent=choseong(t.term);h.style.display='inline-block';
+  }
+}
+
+/* 다음 문제 or 종료 */
+function nextQuestion(){
+  qi++;
+  if(qi>=TOTAL){endRound();return;}
+  renderQuestion();
+}
+
+/* ================= 이펙트 ================= */
+function goalFX(gain,bonus){
+  const fx=document.getElementById('fx');
+  fx.innerHTML=`<div class="goal-txt">GOAL!</div>
+    <div class="cheer">+${gain}점${bonus?` · 콤보 +${bonus}!`:''}</div>`;
+  fx.classList.add('on');
+  // 폭죽
+  const colors=['#ffc93c','#4d94ff','#3ddc91','#ff6b6b','#ff9e6b','#c48bff'];
+  for(let i=0;i<28;i++){
+    const s=document.createElement('div');s.className='spark';
+    s.style.background=colors[i%colors.length];
+    s.style.left='50%';s.style.top='34%';
+    fx.appendChild(s);
+    const ang=Math.random()*Math.PI*2, dist=80+Math.random()*140;
+    s.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},
+      {transform:`translate(${Math.cos(ang)*dist-50}%,${Math.sin(ang)*dist}px) scale(0)`,opacity:0}],
+      {duration:800+Math.random()*400,easing:'cubic-bezier(.2,.6,.3,1)'});
+  }
+  setTimeout(()=>{fx.classList.remove('on');fx.innerHTML='';},1000);
+}
+function encourage(){
+  const msgs=['괜찮아, 다시 도전! 💪','거의 다 왔어! 힌트를 봐 🔍','실수는 배움의 시작 ✨','한 번 더 생각해봐! 🤔'];
+  const e=document.getElementById('encourage');
+  e.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+  e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1600);
+}
+
+/* ================= 라운드 종료 & 기록 ================= */
+function endRound(){
+  document.getElementById('r-score').textContent=roundScore;
+  const max=PTS[curMode][0]*TOTAL;
+  document.getElementById('r-summary').textContent=`${curMode.toUpperCase()} · 만점 ${max}점 중`;
+  document.getElementById('r-first').textContent=firstCnt;
+  document.getElementById('r-retry').textContent=retryCnt;
+  // 오답 목록
+  const ww=document.getElementById('r-wrong-wrap');
+  if(wrongThisRound.length){ww.style.display='block';
+    document.getElementById('r-wrong').innerHTML=wrongThisRound.map(t=>`<span class="chip bad">${t}</span>`).join('');
+  }else ww.style.display='none';
+  // 서버/로컬 기록
+  recordResult().then(total=>{document.getElementById('r-total').textContent=total;});
+  show('s-result');
+}
+
+function recordResult(){
+  if(!user)return Promise.resolve(0);   // 안전장치(정상 흐름에선 항상 로그인 상태)
+  // 로컬 누적(폴백 & 즉시 표시용)
+  const rank=lload(LK.rank,{});
+  const key=user.num+'|'+user.nick;
+  rank[curMode]=rank[curMode]||{};
+  rank[curMode][key]=(rank[curMode][key]||0)+roundScore;
+  lsave(LK.rank,rank);
+  const wrongTally=lload(LK.wrong,{});
+  wrongThisRound.forEach(t=>wrongTally[t]=(wrongTally[t]||0)+1);
+  lsave(LK.wrong,wrongTally);
+  const localTotal=rank[curMode][key];
+  // 학습 현황 로그(로컬) — 매 판 1줄
+  const correct=firstCnt+retryCnt;
+  const plog=lload('sci_shoot_prog',[]);
+  plog.push({t:Date.now(),num:user.num,nick:user.nick,mode:curMode,score:roundScore,
+    correct,first:firstCnt,retry:retryCnt,total:TOTAL});
+  lsave('sci_shoot_prog',plog);
+  // 서버 기록(비동기, 실패 무시)
+  if(BACKEND_URL){
+    const mode=curMode==='normal'?'mid':curMode;   // 랭킹 버킷 호환
+    apiPost({action:'score',num:user.num,nick:user.nick,mode,score:roundScore});
+    if(wrongThisRound.length)apiPost({action:'wrong',num:user.num,terms:wrongThisRound});
+    // 상세 학습 현황 기록
+    apiPost({action:'progress',num:user.num,nick:user.nick,mode:curMode,score:roundScore,
+      correct,first:firstCnt,retry:retryCnt,total:TOTAL,wrong:wrongThisRound});
+  }
+  return Promise.resolve(localTotal);
+}
+
+/* ================= 랭킹 ================= */
+let rankData=null, rankMode='easy';
+function openRank(){prevScreen=user?'s-diff':'s-login';show('s-rank');rankTab('easy');loadRank();}
+function loadRank(){
+  if(!BACKEND_URL){renderRank();return;}
+  api('action=load').then(d=>{if(d&&d.ok)rankData=d;renderRank();}).catch(renderRank);
+}
+function rankTab(m){rankMode=m;
+  document.querySelectorAll('#s-rank .tb').forEach(t=>t.classList.toggle('on',t.dataset.m===m));
+  renderRank();}
+function serverBucket(m){return m==='normal'?'mid':m;}
+function renderRank(){
+  const body=document.getElementById('rank-body');
+  let list=[];
+  if(rankData&&rankData.rank){
+    const arr=rankData.rank[serverBucket(rankMode)]||[];
+    list=arr.map(r=>({name:r.nick,score:r.score}));
+  }else{
+    const rank=lload(LK.rank,{})[rankMode]||{};
+    list=Object.entries(rank).map(([k,v])=>({name:k.split('|')[1]||k,score:v}))
+      .sort((a,b)=>b.score-a.score).slice(0,5);
+  }
+  if(!list.length){body.innerHTML='<p class="muted center">아직 기록이 없어요. 첫 골의 주인공이 되어보세요! ⚽</p>';return;}
+  body.innerHTML='<table><tr><th>순위</th><th>부캐</th><th style="text-align:right">누적점수</th></tr>'+
+    list.map((r,i)=>`<tr><td class="${i===0?'rank-1':''}">${['🥇','🥈','🥉','4','5'][i]||i+1}</td>
+      <td>${r.name}</td><td style="text-align:right;font-weight:800">${r.score}</td></tr>`).join('')+'</table>';
+}
+
+/* ================= 관리자 ================= */
+function admLogin(){
+  const pw=document.getElementById('adm-pw').value;
+  if(pw===ADMIN_PW){document.getElementById('adm-pw').value='';document.getElementById('adm-msg').textContent='';
+    openAdmin();}
+  else document.getElementById('adm-msg').textContent='비밀번호가 틀렸어요.';
+}
+function openAdmin(){
+  show('s-admin');
+  loadTerms().then(renderAdminTerms);
+  const draw=()=>{renderAdminProgress();renderAdminRank();renderAdminWrong();};
+  if(BACKEND_URL)api('action=load').then(d=>{if(d&&d.ok)rankData=d;draw();}).catch(draw);
+  else draw();
+}
+function renderAdminProgress(){
+  const el=document.getElementById('adm-progress');
+  let list=[];
+  if(rankData&&Array.isArray(rankData.progress)){        // 서버 집계 우선
+    list=rankData.progress.map(r=>({num:r.num,nick:r.nick,plays:r.plays,score:r.score,acc:r.acc,last:r.last}));
+  }else{                                                  // 로컬 폴백: 판별 로그 집계
+    const plog=lload('sci_shoot_prog',[]);const map={};
+    plog.forEach(p=>{const k=p.num+'|'+p.nick;const r=map[k]||(map[k]={num:p.num,nick:p.nick,plays:0,score:0,correct:0,total:0,last:0});
+      r.plays++;r.score+=p.score||0;r.correct+=p.correct||0;r.total+=p.total||0;r.last=Math.max(r.last,p.t||0);});
+    list=Object.values(map).map(r=>({num:r.num,nick:r.nick,plays:r.plays,score:r.score,
+      acc:r.total?Math.round(r.correct/r.total*100):0,last:r.last})).sort((a,b)=>b.score-a.score);
+  }
+  if(!list.length){el.innerHTML='<p class="muted">아직 학습 기록이 없어요.</p>';return;}
+  const fmt=t=>{if(!t)return'-';const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+  el.innerHTML='<table><tr><th>학번</th><th>부캐</th><th style="text-align:right">판수</th><th style="text-align:right">누적점수</th><th style="text-align:right">정답률</th><th>최근</th></tr>'+
+    list.map(r=>`<tr><td>${r.num}</td><td style="font-weight:700">${r.nick}</td>
+      <td style="text-align:right">${r.plays}</td>
+      <td style="text-align:right;font-weight:800">${r.score}</td>
+      <td style="text-align:right">${r.acc}%</td>
+      <td class="cap">${fmt(r.last)}</td></tr>`).join('')+'</table>'+
+    `<p class="cap muted" style="margin-top:6px">총 학생 ${list.length}명</p>`;
+}
+function reloadTerms(){loadTerms().then(()=>{renderAdminTerms();toast('문제 세트를 새로 불러왔어요');});}
+function renderAdminTerms(){
+  document.getElementById('adm-terms').innerHTML=`현재 <b>${terms.length}개</b> 용어 로드됨`;
+  const prev=document.getElementById('adm-terms-preview');
+  if(!prev)return;
+  if(!terms.length){prev.innerHTML='';return;}
+  prev.innerHTML='<table><tr><th>이미지</th><th>단어</th><th>설명</th></tr>'+
+    terms.map(t=>{
+      const img=t.image?`<img src="${t.image}" style="width:38px;height:38px;object-fit:cover;border-radius:6px" onerror="this.replaceWith(document.createTextNode('🖼️'))">`:'—';
+      return `<tr><td>${img}</td><td style="font-weight:800;white-space:nowrap">${t.term}</td><td class="cap">${t.desc||''}</td></tr>`;
+    }).join('')+'</table>';
+}
+function renderAdminRank(){
+  const el=document.getElementById('adm-rank');
+  el.innerHTML=['easy','normal','hard'].map(m=>{
+    let list=[];
+    if(rankData&&rankData.rank){list=(rankData.rank[serverBucket(m)]||[]).map(r=>({name:r.nick,score:r.score}));}
+    else{const rk=lload(LK.rank,{})[m]||{};list=Object.entries(rk).map(([k,v])=>({name:k.split('|')[1]||k,score:v})).sort((a,b)=>b.score-a.score).slice(0,5);}
+    const rows=list.length?list.map((r,i)=>`<tr><td>${i+1}</td><td>${r.name}</td><td style="text-align:right">${r.score}</td></tr>`).join(''):'<tr><td colspan="3" class="muted">기록 없음</td></tr>';
+    return `<div style="margin:6px 0"><b>${m.toUpperCase()}</b><table>${rows}</table></div>`;
+  }).join('');
+}
+function renderAdminWrong(){
+  const el=document.getElementById('adm-wrong');
+  let entries=[];
+  if(rankData&&Array.isArray(rankData.wrong)){entries=rankData.wrong;}
+  else{const w=lload(LK.wrong,{});entries=Object.entries(w).sort((a,b)=>b[1]-a[1]);}
+  if(!entries.length){el.innerHTML='<p class="muted">아직 오답 기록이 없어요.</p>';return;}
+  const maxv=entries[0][1]||1;
+  el.innerHTML=entries.slice(0,15).map(([term,cnt])=>
+    `<div style="margin:7px 0"><div class="row"><span class="grow">${term}</span><b>${cnt}회</b></div>
+     <div class="bar"><span style="width:${Math.round(cnt/maxv*100)}%"></span></div></div>`).join('');
+}
+
+/* ================= 챗봇 (Upstage 프록시) ================= */
+function openChat(){prevScreen=document.querySelector('.screen.active').id;show('s-chat');
+  if(!document.getElementById('chat-log').children.length)
+    addMsg('a','안녕! 나는 과학 학습 도우미야. 용어나 개념이 궁금하면 뭐든 물어봐 🔬');}
+function addMsg(role,text){const log=document.getElementById('chat-log');
+  const d=document.createElement('div');d.className='msg '+role;d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+function sendChat(){
+  const inp=document.getElementById('chat-in');const q=inp.value.trim();if(!q)return;
+  inp.value='';addMsg('u',q);
+  const wait=addMsg('a','생각 중… 🤔');
+  if(!BACKEND_URL){wait.textContent='(백엔드 미연결) 프록시 배포 후 챗봇을 사용할 수 있어요.';return;}
+  apiPost({action:'chat',message:q}).then(d=>{
+    wait.textContent=(d&&d.reply)?d.reply:'지금은 답하기 어려워요. 잠시 후 다시 시도해줘.';
+  }).catch(()=>{wait.textContent='통신 오류가 났어요. 다시 시도해줘.';});
+}
+
+/* 설명 다듬기 (선택) */
+function polishDesc(t){
+  apiPost({action:'polish',text:t.desc,term:t.term}).then(d=>{
+    if(d&&d.text&&terms[queue[qi]]===t)document.getElementById('q-desc').textContent=d.text;
+  }).catch(()=>{});
+}
+
+/* ================= 챗봇 FAB 드래그 ================= */
+(function initFab(){
+  const fab=document.getElementById('admFab');
+  let sx,sy,ox,oy,moved=false,dragging=false;
+  const pos=lload('sci_shoot_fabpos',null);
+  if(pos){fab.style.left=pos.x+'px';fab.style.top=pos.y+'px';fab.style.right='auto';fab.style.bottom='auto';}
+  function pt(e){return e.touches&&e.touches[0]?e.touches[0]:e;}
+  function down(e){dragging=true;moved=false;const p=pt(e);
+    const r=fab.getBoundingClientRect();ox=r.left;oy=r.top;sx=p.clientX;sy=p.clientY;e.preventDefault();}
+  function move(e){if(!dragging)return;const p=pt(e);
+    const dx=p.clientX-sx,dy=p.clientY-sy;
+    if(Math.abs(dx)+Math.abs(dy)>6)moved=true;
+    let nx=Math.max(4,Math.min(window.innerWidth-fab.offsetWidth-4,ox+dx));
+    let ny=Math.max(4,Math.min(window.innerHeight-fab.offsetHeight-4,oy+dy));
+    fab.style.left=nx+'px';fab.style.top=ny+'px';fab.style.right='auto';fab.style.bottom='auto';
+    e.preventDefault();}
+  function up(){if(!dragging)return;dragging=false;
+    if(moved){const r=fab.getBoundingClientRect();lsave('sci_shoot_fabpos',{x:r.left,y:r.top});}
+    else openChat();}   // 움직이지 않았으면 탭 → 챗봇 열기
+  fab.addEventListener('mousedown',down);
+  fab.addEventListener('touchstart',down,{passive:false});
+  window.addEventListener('mousemove',move);
+  window.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('mouseup',up);
+  window.addEventListener('touchend',up);
+})();
+
+/* ================= INIT ================= */
+initNickOptions();
+renderTop();
+</script>
+</body>
+</html>
